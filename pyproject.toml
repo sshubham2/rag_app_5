@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Shubehndu Shubham <s2.shubh2@gmail.com>"]
 readme = "README.md"
-packages = [{include = "rag_app_3"}]
+packages = [{include = "rag_app_5"}]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
