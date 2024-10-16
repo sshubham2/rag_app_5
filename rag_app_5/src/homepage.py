@@ -73,7 +73,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 class='centered-header'>Available Modules</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='centered-header'>Available Personalities</h1>", unsafe_allow_html=True)
 
 st.subheader("Programming Language Expert 💻")
 with st.expander("What can I do?"):
