@@ -24,6 +24,12 @@ VECTOR_DB_DIR = ROOT_DIR/"vector_dbs"
 VECTOR_DB_DIR.mkdir(parents=True, exist_ok=True)
 CONTEXT_DIR = ROOT_DIR/"context_folder"
 CONTEXT_DIR.mkdir(parents=True, exist_ok=True)
+THRESHOLD_TYPES = [
+    'percentile',
+    'standard_deviation',
+    'interquartile',
+    'gradient'
+]
 
 # Custom CSS to improve aesthetics
 st.markdown("""
@@ -99,11 +105,13 @@ def load_documents(source_type, folder_name=None, bucket_name=None):
             st.warning(f"No PDF documents found in S3 bucket - {bucket_name}")
     return None
 
-def create_vector_db(documents, db_name):
+def create_vector_db(documents, db_name, threshold_type):
     st.info("Creating vector database...")
-    # embedding_model = HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
     embedding_model = setup_embedding_model()
-    text_splitter = SemanticChunker(embedding_model, breakpoint_threshold_type="standard_deviation")
+    text_splitter = SemanticChunker(
+        embedding_model, 
+        breakpoint_threshold_type=threshold_type
+    )
     logger.info(f"Total number of documents: {len(documents)}")
     chunks = text_splitter.split_documents(documents)
     st.info(f"{len(chunks)} chunks created from {len(documents)} documents.")
@@ -114,7 +122,7 @@ def create_vector_db(documents, db_name):
     vector_db.save_local(str(db_path))
     st.success(f"Vector database '{db_name}' created successfully.")
 
-def resync_vector_db(db_name, documents):
+def resync_vector_db(db_name, documents, threshold_type):
     db_path = VECTOR_DB_DIR / db_name
     if not db_path.exists():
         st.error(f"Vector database '{db_name}' does not exist.")
@@ -123,7 +131,7 @@ def resync_vector_db(db_name, documents):
     st.info(f"Deleting existing vector database '{db_name}'...")
     shutil.rmtree(db_path)
 
-    create_vector_db(documents, db_name)
+    create_vector_db(documents, db_name, threshold_type)
     st.success(f"Vector database '{db_name}' resynced successfully.")
 
 def delete_vector_db(db_name):
@@ -156,6 +164,13 @@ def main():
                 db_name = st.selectbox("Select the vector database to resync:", vector_databases)
             if action == "Create new vector database":
                 db_name = st.text_input("Enter the name for the new vector database:")
+                
+            # Add threshold type selection
+            threshold_type = st.selectbox(
+                "Select breakpoint threshold type:",
+                THRESHOLD_TYPES,
+                help="Choose the method for determining chunk breakpoints"
+            )
 
             source_type = st.selectbox("Select source type", ["local", "s3"])
             if source_type == "local":
@@ -180,11 +195,11 @@ def main():
                             if db_path.exists():
                                 resync = st.checkbox(f"Vector database '{db_name}' already exists. Do you want to resync it?")
                                 if resync:
-                                    resync_vector_db(db_name, documents)
+                                    resync_vector_db(db_name, documents, threshold_type)
                             else:
-                                create_vector_db(documents, db_name)
+                                create_vector_db(documents, db_name, threshold_type)
                         else:  # Resync existing vector database
-                            resync_vector_db(db_name, documents)
+                            resync_vector_db(db_name, documents, threshold_type)
 
         elif action == "Delete vector database":
             vector_databases = [x.name for x in VECTOR_DB_DIR.iterdir() if x.is_dir()]
