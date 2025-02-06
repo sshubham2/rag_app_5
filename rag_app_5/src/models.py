@@ -6,7 +6,8 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_groq import ChatGroq
 from langchain_mistralai import ChatMistralAI
-from config import OPENAI_MODELS, ANTHROPIC_MODELS, GROQ_MODELS, MISTRAL_MODELS
+from langchain_ollama import ChatOllama
+from config import OPENAI_MODELS, ANTHROPIC_MODELS, GROQ_MODELS, MISTRAL_MODELS, OLLAMA_MODELS, OPENAI_VISION_MODELS, ANTHROPIC_VISION_MODELS, OLLAMA_VISION_MODELS
 from langchain_huggingface import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 
@@ -26,7 +27,31 @@ def setup_openai_model() -> ChatOpenAI:
     try:
         return ChatOpenAI(
             model=st.session_state.selected_model,
-            temperature=0.7,
+            temperature=0.2,
+            max_tokens=4096,
+            timeout=None,
+            max_retries=2,
+            api_key=api_key
+        )
+    except Exception as e:
+        st.error(f"Error setting up OpenAI model: {str(e)}")
+        st.stop()
+        
+def setup_openai_vision_model() -> ChatOpenAI:
+    """Set up and return an OpenAI model."""
+    model_options = list(OPENAI_VISION_MODELS.keys())
+    selected_model = st.sidebar.selectbox("Choose model:", model_options, index=0)
+    st.session_state.selected_model = OPENAI_VISION_MODELS[selected_model]
+    with st.sidebar:
+        api_key = os.getenv('OPENAI_API_KEY') or st.text_input("Enter OpenAI API Key", type="password")
+        if not api_key:
+            st.warning("Invalid API Key")
+            st.stop()
+
+    try:
+        return ChatOpenAI(
+            model=st.session_state.selected_model,
+            temperature=0,
             max_tokens=4096,
             timeout=None,
             max_retries=2,
@@ -50,7 +75,33 @@ def setup_anthropic_model() -> ChatAnthropic:
     try:
         return ChatAnthropic(
             model=st.session_state.selected_model,
-            temperature=0.7,
+            temperature=0.2,
+            max_tokens=4096,
+            timeout=None,
+            max_retries=2,
+            top_p=0.9,
+            top_k=40,
+            api_key=api_key
+        )
+    except Exception as e:
+        st.error(f"Error setting up Anthropic model: {str(e)}")
+        st.stop()
+        
+def setup_anthropic_vision_model() -> ChatAnthropic:
+    """Set up and return an Anthropic model."""
+    model_options = list(ANTHROPIC_VISION_MODELS.keys())
+    selected_model = st.sidebar.selectbox("Choose model:", model_options, index=0)
+    st.session_state.selected_model = ANTHROPIC_VISION_MODELS[selected_model]
+    with st.sidebar:
+        api_key = os.getenv('ANTHROPIC_API_KEY') or st.text_input("Enter Anthropic API Key", type="password")
+        if not api_key:
+            st.warning("Invalid API Key")
+            st.stop()
+
+    try:
+        return ChatAnthropic(
+            model=st.session_state.selected_model,
+            temperature=0,
             max_tokens=4096,
             timeout=None,
             max_retries=2,
@@ -109,6 +160,32 @@ def setup_mistral_model() -> ChatMistralAI:
         )
     except Exception as e:
         st.error(f"Error setting up Mistral model: {str(e)}")
+        st.stop()
+        
+def setup_ollama_model() -> ChatOllama:
+    """Set up and return an Ollama model."""
+    model_options = list(OLLAMA_MODELS.keys())
+    selected_model = st.sidebar.selectbox("Choose model:", model_options, index=0)
+    st.session_state.selected_model = OLLAMA_MODELS[selected_model]
+    try:
+        return ChatOllama(
+            model=st.session_state.selected_model
+        )
+    except Exception as e:
+        st.error(f"Error setting up Ollama model: {str(e)}")
+        st.stop()
+        
+def setup_ollama_vision_model() -> ChatOllama:
+    """Set up and return an Ollama model."""
+    model_options = list(OLLAMA_VISION_MODELS.keys())
+    selected_model = st.sidebar.selectbox("Choose model:", model_options, index=0)
+    st.session_state.selected_model = OLLAMA_VISION_MODELS[selected_model]
+    try:
+        return ChatOllama(
+            model=st.session_state.selected_model
+        )
+    except Exception as e:
+        st.error(f"Error setting up Ollama model: {str(e)}")
         st.stop()
 
 @st.cache_resource      

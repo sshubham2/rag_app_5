@@ -34,6 +34,7 @@ faiss-cpu = "^1.8.0.post1"
 einops = "^0.8.0"
 datasets = "^3.0.1"
 python-magic-bin = {git = "https://github.com/julian-r/python-magic.git"}
+pytesseract = "^0.3.13"
 
 
 [build-system]
